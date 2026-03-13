@@ -1,0 +1,97 @@
+services:
+  # ─────────────────────────────────────────────
+  # MySQL 8
+  # ─────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: asap_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-carpool_platform}
+      MYSQL_USER: ${MYSQL_USER:-asap}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./carpool_platform.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    networks:
+      - asap_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ─────────────────────────────────────────────
+  # phpMyAdmin
+  # ─────────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: asap_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 128M
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    networks:
+      - asap_net
+
+  # ─────────────────────────────────────────────
+  # Backend API (Node.js / TypeScript / Prisma)
+  # ─────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: asap_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      APP_URL: ${APP_URL}
+      API_URL: ${API_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      DATABASE_URL: mysql://${MYSQL_USER:-asap}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-carpool_platform}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_CURRENCY: ${STRIPE_CURRENCY:-CAD}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_URL: ${SMTP_URL:-}
+      EMAIL_FROM: ${EMAIL_FROM}
+      HOLD_DELAY_DAYS: ${HOLD_DELAY_DAYS:-7}
+      MIN_PAYOUT_AMOUNT: ${MIN_PAYOUT_AMOUNT:-10.00}
+      PAYOUT_FREQUENCY_DAYS: ${PAYOUT_FREQUENCY_DAYS:-7}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    networks:
+      - asap_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  asap_net:
+    driver: bridge
