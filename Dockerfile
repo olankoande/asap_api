@@ -7,16 +7,14 @@ WORKDIR /usr/src/app
 # (le script postinstall exécute `prisma generate` — le schéma doit être présent)
 COPY package*.json ./
 COPY prisma ./prisma
-RUN npm install
+# Forcer l'installation de toutes les dépendances (y compris devDependencies)
+# même si NODE_ENV=production est passé comme build-arg par Coolify
+RUN npm install --include=dev --ignore-scripts
+RUN npx prisma generate
 
 # Copier le reste du code source
 COPY . .
 
-# Regénérer le client Prisma (au cas où le schéma aurait changé après install)
-RUN npx prisma generate
-
-# Compiler le code TypeScript en JavaScript (si nécessaire)
-# Assurez-vous d'avoir un script "build" dans votre package.json
 RUN npm run build
 
 # Étape 2: Image de production finale
