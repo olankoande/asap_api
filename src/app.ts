@@ -35,6 +35,9 @@ import * as deliveriesCtrl from './modules/deliveries/deliveries.controller';
 
 const app = express();
 
+// Trust Coolify/Traefik reverse proxy (required for rate limiting and IP detection)
+app.set('trust proxy', 1);
+
 // Security
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }));
