@@ -3,14 +3,16 @@ FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
-# Copier les fichiers de dépendances et les installer
+# Copier les fichiers de dépendances et le schéma Prisma
+# (le script postinstall exécute `prisma generate` — le schéma doit être présent)
 COPY package*.json ./
+COPY prisma ./prisma
 RUN npm install
 
 # Copier le reste du code source
 COPY . .
 
-# Générer le client Prisma
+# Regénérer le client Prisma (au cas où le schéma aurait changé après install)
 RUN npx prisma generate
 
 # Compiler le code TypeScript en JavaScript (si nécessaire)
