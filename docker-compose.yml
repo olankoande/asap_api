@@ -18,10 +18,10 @@ services:
       - asap_net
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
-      start_period: 60s
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
 
   # ─────────────────────────────────────────────
   # phpMyAdmin
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-3000}
