@@ -40,4 +40,4 @@ EXPOSE 3000
 
 # Commande pour exécuter les migrations et démarrer le serveur
 # Assurez-vous d'avoir un script "start:prod" (ex: "node dist/main.js") dans votre package.json
-CMD ["sh", "-c", "until mysqladmin ping -h db --silent 2>/dev/null; do echo 'Waiting for MySQL...'; sleep 3; done && npx prisma migrate deploy && npm run start"]
+CMD ["sh", "-c", "until mysqladmin ping -h db -uroot -p\"${MYSQL_ROOT_PASSWORD}\" --silent 2>/dev/null; do echo 'Waiting for MySQL...'; sleep 3; done && npx prisma migrate deploy && npm run start"]
