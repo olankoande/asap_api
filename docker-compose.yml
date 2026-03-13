@@ -39,8 +39,6 @@ services:
       PMA_USER: root
       PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       UPLOAD_LIMIT: 128M
-    ports:
-      - "${PHPMYADMIN_PORT:-8080}:80"
     networks:
       - asap_net
 
@@ -77,8 +75,6 @@ services:
       HOLD_DELAY_DAYS: ${HOLD_DELAY_DAYS:-7}
       MIN_PAYOUT_AMOUNT: ${MIN_PAYOUT_AMOUNT:-10.00}
       PAYOUT_FREQUENCY_DAYS: ${PAYOUT_FREQUENCY_DAYS:-7}
-    ports:
-      - "${API_PORT:-3000}:3000"
     networks:
       - asap_net
     healthcheck:
