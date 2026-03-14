@@ -1,4 +1,5 @@
 services:
+
   # ─────────────────────────────────────────────
   # MySQL 5.7
   # ─────────────────────────────────────────────
@@ -23,28 +24,25 @@ services:
       start_period: 60s
 
   # ─────────────────────────────────────────────
-  # Import SQL (structure + données) — tourne une seule fois
+  # Import SQL — tourne une seule fois après que MySQL est prêt
   # ─────────────────────────────────────────────
   db-init:
     image: mysql:5.7
-    restart: on-failure
+    restart: "no"
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./carpool_platform.sql:/init.sql:ro
     command: >
       bash -c "
-        until mysqladmin ping -h db -uroot -pL@nk0usm2ne --silent 2>/dev/null; do
-          echo 'db-init: waiting for MySQL...'; sleep 3;
-        done &&
-        TABLES=$(mysql -h db -uroot -pL@nk0usm2ne -e 'SHOW TABLES FROM carpool_platform;' 2>/dev/null | wc -l) &&
+        TABLES=$$(mysql -h db -uroot -pL@nk0usm2ne -e 'SHOW TABLES FROM carpool_platform;' 2>/dev/null | wc -l) &&
         if [ \"$$TABLES\" -lt 2 ]; then
           echo 'db-init: importing SQL...' &&
           mysql -h db -uroot -pL@nk0usm2ne carpool_platform < /init.sql &&
           echo 'db-init: import complete';
         else
-          echo 'db-init: tables already exist, skipping import';
+          echo 'db-init: tables already present, skipping';
         fi
       "
     networks:
@@ -58,7 +56,7 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
@@ -72,16 +70,18 @@ services:
       - coolify
 
   # ─────────────────────────────────────────────
-  # Backend API
+  # Backend API — démarre seulement quand MySQL est sain ET l'import terminé
   # ─────────────────────────────────────────────
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: on-failure:5
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: "3000"
@@ -100,9 +100,9 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       SMTP_URL: ${SMTP_URL:-}
       EMAIL_FROM: ${EMAIL_FROM:-no-reply@asapjoin.com}
-      HOLD_DELAY_DAYS: ${HOLD_DELAY_DAYS:-7}
-      MIN_PAYOUT_AMOUNT: ${MIN_PAYOUT_AMOUNT:-10.00}
-      PAYOUT_FREQUENCY_DAYS: ${PAYOUT_FREQUENCY_DAYS:-7}
+      HOLD_DELAY_DAYS: "7"
+      MIN_PAYOUT_AMOUNT: "10.00"
+      PAYOUT_FREQUENCY_DAYS: "7"
     expose:
       - "3000"
     networks:

@@ -1,43 +1,39 @@
-# Étape 1: Build de l'application
+# ── Stage 1 : Build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
-# Copier les fichiers de dépendances et le schéma Prisma
-# (le script postinstall exécute `prisma generate` — le schéma doit être présent)
+# Copier package + schéma Prisma avant le reste (cache npm ci)
 COPY package*.json ./
 COPY prisma ./prisma
-# Forcer l'installation de toutes les dépendances (y compris devDependencies)
-# même si NODE_ENV=production est passé comme build-arg par Coolify
+
+# Installer toutes les dépendances (dev inclus pour tsc + prisma generate)
 RUN npm ci --include=dev --ignore-scripts
 RUN npx prisma generate
 
-# Copier le reste du code source
+# Copier le reste du code puis compiler
 COPY . .
-
 RUN npm run build
 
-# Étape 2: Image de production finale
+# ── Stage 2 : Production ──────────────────────────────────────────────────────
 FROM node:20-alpine AS release
 
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-# OpenSSL requis par Prisma
+# OpenSSL requis par Prisma sur Alpine
 RUN apk add --no-cache openssl
 
-# Copier uniquement les dépendances de production depuis l'étape de build
+# Copier artefacts du build
 COPY --from=build /usr/src/app/node_modules ./node_modules
-# Copier le code compilé, le schéma et le client Prisma généré
+COPY --from=build /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma
-COPY --from=build /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /usr/src/app/public ./public
 COPY package*.json ./
 
 EXPOSE 3000
 
-# Commande pour exécuter les migrations et démarrer le serveur
-# Assurez-vous d'avoir un script "start:prod" (ex: "node dist/main.js") dans votre package.json
-CMD ["sh", "-c", "until nc -z -w 3 db 3306 2>/dev/null; do echo 'Waiting for MySQL...'; sleep 3; done && npm run start"]
+# Démarrage direct — MySQL est garanti prêt par le depends_on service_healthy
+CMD ["node", "dist/server.js"]
