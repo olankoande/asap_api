@@ -34,17 +34,18 @@ services:
         condition: service_healthy
     volumes:
       - ./carpool_platform.sql:/init.sql:ro
-    command: >
-      bash -c "
-        TABLES=$$(mysql -h db -uroot -pL@nk0usm2ne -e 'SHOW TABLES FROM carpool_platform;' 2>/dev/null | wc -l) &&
-        if [ \"$$TABLES\" -lt 2 ]; then
-          echo 'db-init: importing SQL...' &&
-          mysql -h db -uroot -pL@nk0usm2ne carpool_platform < /init.sql &&
-          echo 'db-init: import complete';
+    command:
+      - bash
+      - -c
+      - |
+        TABLES=$$(mysql -h db -uroot -pL@nk0usm2ne -e 'SHOW TABLES FROM carpool_platform;' 2>/dev/null | wc -l)
+        if [ $$TABLES -lt 2 ]; then
+          echo 'db-init: importing SQL...'
+          mysql -h db -uroot -pL@nk0usm2ne carpool_platform < /init.sql
+          echo 'db-init: import complete'
         else
-          echo 'db-init: tables already present, skipping';
+          echo 'db-init: tables already present, skipping'
         fi
-      "
     networks:
       - asap_net
 
