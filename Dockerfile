@@ -9,7 +9,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 # Forcer l'installation de toutes les dépendances (y compris devDependencies)
 # même si NODE_ENV=production est passé comme build-arg par Coolify
-RUN npm install --include=dev --ignore-scripts
+RUN npm ci --include=dev --ignore-scripts
 RUN npx prisma generate
 
 # Copier le reste du code source
