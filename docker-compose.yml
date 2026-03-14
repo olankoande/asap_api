@@ -5,6 +5,7 @@ services:
   db:
     image: mysql:5.7
     restart: unless-stopped
+    command: --log-error-verbosity=1 --log_warnings=0
     environment:
       MYSQL_ROOT_PASSWORD: L@nk0usm2ne
       MYSQL_DATABASE: carpool_platform
