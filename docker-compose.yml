@@ -12,7 +12,6 @@ services:
       MYSQL_PASSWORD: L@nk0usm2ne
     volumes:
       - db_data:/var/lib/mysql
-      - ./carpool_platform.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     networks:
       - asap_net
     healthcheck:
@@ -21,6 +20,34 @@ services:
       timeout: 5s
       retries: 30
       start_period: 60s
+
+  # ─────────────────────────────────────────────
+  # Import SQL (structure + données) — tourne une seule fois
+  # ─────────────────────────────────────────────
+  db-init:
+    image: mysql:5.7
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_started
+    volumes:
+      - ./carpool_platform.sql:/init.sql:ro
+    command: >
+      bash -c "
+        until mysqladmin ping -h db -uroot -pL@nk0usm2ne --silent 2>/dev/null; do
+          echo 'db-init: waiting for MySQL...'; sleep 3;
+        done &&
+        TABLES=$(mysql -h db -uroot -pL@nk0usm2ne -e 'SHOW TABLES FROM carpool_platform;' 2>/dev/null | wc -l) &&
+        if [ \"$$TABLES\" -lt 2 ]; then
+          echo 'db-init: importing SQL...' &&
+          mysql -h db -uroot -pL@nk0usm2ne carpool_platform < /init.sql &&
+          echo 'db-init: import complete';
+        else
+          echo 'db-init: tables already exist, skipping import';
+        fi
+      "
+    networks:
+      - asap_net
 
   # ─────────────────────────────────────────────
   # phpMyAdmin
