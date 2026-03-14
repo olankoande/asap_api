@@ -41,6 +41,7 @@ services:
       - "80"
     networks:
       - asap_net
+      - coolify
 
   # ─────────────────────────────────────────────
   # Backend API
@@ -61,6 +62,7 @@ services:
       - "3000"
     networks:
       - asap_net
+      - coolify
 
 volumes:
   db_data:
@@ -69,3 +71,5 @@ volumes:
 networks:
   asap_net:
     driver: bridge
+  coolify:
+    external: true
