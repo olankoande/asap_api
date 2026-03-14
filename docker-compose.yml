@@ -16,7 +16,7 @@ services:
     networks:
       - asap_net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "--silent"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pL@nk0usm2ne", "--silent"]
       interval: 10s
       timeout: 5s
       retries: 30
