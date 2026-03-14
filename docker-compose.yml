@@ -5,12 +5,11 @@ services:
   db:
     image: mysql:5.7
     restart: unless-stopped
-    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-carpool_platform}
-      MYSQL_USER: ${MYSQL_USER:-asap}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: L@nk0usm2ne
+      MYSQL_DATABASE: carpool_platform
+      MYSQL_USER: asap
+      MYSQL_PASSWORD: L@nk0usm2ne
     volumes:
       - db_data:/var/lib/mysql
       - ./carpool_platform.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -36,7 +35,7 @@ services:
       PMA_HOST: db
       PMA_PORT: 3306
       PMA_USER: root
-      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      PMA_PASSWORD: L@nk0usm2ne
       UPLOAD_LIMIT: 128M
     expose:
       - "80"
@@ -56,8 +55,8 @@ services:
         condition: service_started
     env_file: .env
     environment:
-      # Ecrase DATABASE_URL du .env pour pointer vers le conteneur db interne
-      DATABASE_URL: mysql://${MYSQL_USER:-asap}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-carpool_platform}
+      # Override DATABASE_URL pour pointer vers le conteneur db interne
+      DATABASE_URL: mysql://asap:L@nk0usm2ne@db:3306/carpool_platform
     expose:
       - "3000"
     networks:
