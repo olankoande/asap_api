@@ -1,10 +1,11 @@
 services:
   # ─────────────────────────────────────────────
-  # MySQL 5.7 (compatible avec le dump MySQL 5.6)
+  # MySQL 5.7
   # ─────────────────────────────────────────────
   db:
     image: mysql:5.7
     restart: unless-stopped
+    env_file: .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-carpool_platform}
@@ -43,7 +44,7 @@ services:
       - asap_net
 
   # ─────────────────────────────────────────────
-  # Backend API (Node.js / TypeScript / Prisma)
+  # Backend API
   # ─────────────────────────────────────────────
   api:
     build:
@@ -53,27 +54,12 @@ services:
     depends_on:
       db:
         condition: service_started
+    env_file: .env
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      PORT: ${PORT:-3000}
-      APP_URL: ${APP_URL}
-      API_URL: ${API_URL}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      # Ecrase DATABASE_URL du .env pour pointer vers le conteneur db interne
       DATABASE_URL: mysql://${MYSQL_USER:-asap}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-carpool_platform}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      STRIPE_CURRENCY: ${STRIPE_CURRENCY:-CAD}
-      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      SMTP_URL: ${SMTP_URL:-}
-      EMAIL_FROM: ${EMAIL_FROM}
-      HOLD_DELAY_DAYS: ${HOLD_DELAY_DAYS:-7}
-      MIN_PAYOUT_AMOUNT: ${MIN_PAYOUT_AMOUNT:-10.00}
-      PAYOUT_FREQUENCY_DAYS: ${PAYOUT_FREQUENCY_DAYS:-7}
+    expose:
+      - "3000"
     networks:
       - asap_net
 
