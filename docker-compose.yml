@@ -37,6 +37,8 @@ services:
       PMA_USER: root
       PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       UPLOAD_LIMIT: 128M
+    expose:
+      - "80"
     networks:
       - asap_net
 
