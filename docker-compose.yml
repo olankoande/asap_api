@@ -81,10 +81,27 @@ services:
     depends_on:
       db:
         condition: service_started
-    env_file: .env
     environment:
-      # Override DATABASE_URL pour pointer vers le conteneur db interne
+      NODE_ENV: production
+      PORT: "3000"
       DATABASE_URL: mysql://asap:L@nk0usm2ne@db:3306/carpool_platform
+      APP_URL: ${APP_URL:-}
+      API_URL: ${API_URL:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_CURRENCY: CAD
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-resend}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_URL: ${SMTP_URL:-}
+      EMAIL_FROM: ${EMAIL_FROM:-no-reply@asapjoin.com}
+      HOLD_DELAY_DAYS: ${HOLD_DELAY_DAYS:-7}
+      MIN_PAYOUT_AMOUNT: ${MIN_PAYOUT_AMOUNT:-10.00}
+      PAYOUT_FREQUENCY_DAYS: ${PAYOUT_FREQUENCY_DAYS:-7}
     expose:
       - "3000"
     networks:
