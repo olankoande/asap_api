@@ -73,8 +73,11 @@ function validateParcelAgainstTrip(
   parcel: { size_category: string; weight_kg?: number | null },
   trip: { parcel_max_size?: string | null; parcel_max_weight_kg?: any; parcel_prohibited_items?: string | null },
 ) {
+  const sizeOrder = ['XS', 'S', 'M', 'L'];
+  if (!sizeOrder.includes(parcel.size_category)) {
+    throw Errors.badRequest(`Invalid parcel size: ${parcel.size_category}`);
+  }
   if (trip.parcel_max_size) {
-    const sizeOrder = ['XS', 'S', 'M', 'L'];
     const parcelIdx = sizeOrder.indexOf(parcel.size_category);
     const maxIdx = sizeOrder.indexOf(trip.parcel_max_size);
     if (parcelIdx > maxIdx) {

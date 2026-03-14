@@ -101,6 +101,10 @@ app.get(`${v1}/users/:id/reviews`, async (req, res, next) => {
   try {
     const { prisma } = await import('./db/prisma');
     const userId = req.params.id as string;
+    if (!userId || !/^\d+$/.test(userId)) {
+      res.status(400).json({ code: 'BAD_REQUEST', message: 'Invalid user ID' });
+      return;
+    }
     const reviews = await prisma.reviews.findMany({
       where: { target_user_id: BigInt(userId) },
       include: {

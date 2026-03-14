@@ -760,6 +760,9 @@ export async function adminOverrideRefund(
     throw Errors.badRequest('Cette ressource a déjà été entièrement remboursée.', 'REFUND_ALREADY_PROCESSED');
   }
 
+  if (!input.refund_amount_cents || input.refund_amount_cents <= 0) {
+    throw Errors.badRequest('Le montant du remboursement doit être positif.', 'INVALID_REFUND_AMOUNT');
+  }
   const actualRefundCents = Math.min(input.refund_amount_cents, remainingRefundable);
 
   // Compute fee breakdown

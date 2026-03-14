@@ -33,7 +33,7 @@ export async function register(input: RegisterInput) {
       password_hash,
       first_name: input.first_name,
       last_name: input.last_name,
-      display_name: `${input.first_name} ${input.last_name}`,
+      display_name: `${input.first_name} ${input.last_name}`.trim(),
       phone_number: input.phone_number || null,
       role: 'user',
     },

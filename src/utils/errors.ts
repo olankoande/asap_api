@@ -58,7 +58,7 @@ export const Errors = {
   paymentRequired: () =>
     new AppError(402, 'PAYMENT_REQUIRED', 'Payment is required'),
   webhookAlreadyProcessed: () =>
-    new AppError(200, 'WEBHOOK_ALREADY_PROCESSED', 'This webhook event has already been processed'),
+    new AppError(409, 'WEBHOOK_ALREADY_PROCESSED', 'This webhook event has already been processed'),
   missingPayoutInfo: () =>
     new AppError(400, 'MISSING_PAYOUT_INFO', 'User is missing phone_number or payout_email'),
   userBanned: () =>

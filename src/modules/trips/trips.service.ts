@@ -210,7 +210,8 @@ export async function searchTrips(query: SearchTripsQuery) {
     const dateStart = new Date(query.date);
     const dateEnd = new Date(query.date);
     dateEnd.setDate(dateEnd.getDate() + 1);
-    where.departure_at = { gte: dateStart, lt: dateEnd };
+    const now = new Date();
+    where.departure_at = { gte: dateStart > now ? dateStart : now, lt: dateEnd };
   }
 
   const [trips, total] = await Promise.all([
